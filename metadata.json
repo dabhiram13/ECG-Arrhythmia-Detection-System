@@ -1,0 +1,6 @@
+{
+  "name": "ECG Arrhythmia ML Dashboard",
+  "description": "A frontend dashboard to visualize ECG time-series, features, and deep learning classification results into AAMI categories.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
