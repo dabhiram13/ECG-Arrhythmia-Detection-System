@@ -208,7 +208,7 @@ def print_summary(trad: dict, dl: dict):
 # ==========================================
 # 5. Visualization — save results.png
 # ==========================================
-def save_results_figure(X: np.ndarray, trad: dict, dl: dict):
+def save_results_figure(X: np.ndarray, trad: dict, dl: dict, filename: str = "results.png", dataset_label: str = "1,000-sample Synthetic Dataset"):
     os.makedirs(RESULTS_DIR, exist_ok=True)
 
     DARK   = "#0d1117"
@@ -254,7 +254,7 @@ def save_results_figure(X: np.ndarray, trad: dict, dl: dict):
 
     # ── 1. ECG Signal strip (top, spans all 3 cols) ─────────────
     ax_ecg = fig.add_subplot(gs[0, :])
-    _panel(ax_ecg, "Synthetic ECG Signal — 1 Sample (187 timesteps, seq_len=187, fs=360 Hz)")
+    _panel(ax_ecg, f"ECG Signal — 1 Sample (187 timesteps, fs=360 Hz) | {dataset_label}")
     sample = X[0]
     t = np.arange(len(sample)) / 360
     ax_ecg.plot(t, sample, color=GREEN, linewidth=1.2, alpha=0.9)
@@ -326,13 +326,13 @@ def save_results_figure(X: np.ndarray, trad: dict, dl: dict):
     # ── Footer ──────────────────────────────────────────────────
     fig.text(
         0.5, 0.01,
-        "Dataset: 1,000-sample synthetic ECG · 5 AAMI classes (N, S, V, F, Q) · "
+        f"Dataset: {dataset_label} · 5 AAMI classes (N, S, V, F, Q) · "
         "13 engineered features (time-domain · morphological · frequency-domain) · "
         "Next step: MIT-BIH Arrhythmia Database (PhysioNet)",
         ha="center", fontsize=7.5, color=MUTED
     )
 
-    out_path = os.path.join(RESULTS_DIR, "results.png")
+    out_path = os.path.join(RESULTS_DIR, filename)
     plt.savefig(out_path, dpi=150, bbox_inches="tight", facecolor=DARK)
     plt.close()
     print(f"\nFigure saved → {out_path}")
@@ -348,17 +348,30 @@ if __name__ == "__main__":
     print("  Python · PyTorch · scikit-learn · NumPy")
     print("=============================================\n")
 
-    #load real data
+    # ── Phase 1: Synthetic dataset (1,000 samples) ──────────────
+    print("\n>>> PHASE 1: Synthetic Dataset")
+    X_syn, y_syn = generate_synthetic_dataset(num_samples=1000, seq_length=187)
+    trad_syn = train_traditional_models(X_syn, y_syn)
+    dl_syn   = train_deep_learning_models(X_syn, y_syn, epochs=15)
+    print_summary(trad_syn, dl_syn)
+    save_results_figure(
+        X_syn, trad_syn, dl_syn,
+        filename="results_synthetic.png",
+        dataset_label="1,000-sample Synthetic ECG"
+    )
+
+    # ── Phase 2: Real MIT-BIH data (5 records, ~10k beats) ──────
+    print("\n>>> PHASE 2: Real MIT-BIH Data (PhysioNet)")
     from mitbih_loader import load_mitbih_dataset
-    X, y = load_mitbih_dataset(data_dir="./mitdb", max_records=5)
-    #Synthetic data
-    # X, y = generate_synthetic_dataset(num_samples=1000, seq_length=187)
+    X_real, y_real = load_mitbih_dataset(data_dir="./mitdb", max_records=5)
+    trad_real = train_traditional_models(X_real, y_real)
+    dl_real   = train_deep_learning_models(X_real, y_real, epochs=15)
+    print_summary(trad_real, dl_real)
+    save_results_figure(
+        X_real, trad_real, dl_real,
+        filename="results_real.png",
+        dataset_label="MIT-BIH Arrhythmia DB — 5 records, 10,634 beats (PhysioNet)"
+    )
 
-    trad_results = train_traditional_models(X, y)
-    dl_results   = train_deep_learning_models(X, y, epochs=15)
-
-    print_summary(trad_results, dl_results)
-    save_results_figure(X, trad_results, dl_results)
-
-    print("\nPipeline validation complete.")
-    print("Ready for follow-up evaluation on MIT-BIH Arrhythmia Database.")
+    print("\nBoth pipelines complete.")
+    print("Charts: results/results_synthetic.png · results/results_real.png")

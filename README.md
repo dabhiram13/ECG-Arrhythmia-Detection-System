@@ -6,12 +6,44 @@ A machine learning pipeline that classifies cardiac arrhythmias into **5 AAMI-st
 
 ---
 
-## Pipeline Results
+## Results — Synthetic Dataset (1,000 samples)
 
-![ECG Arrhythmia ML Pipeline Results](results/results.png)
+> Pipeline validation on 1,000 synthetic ECG samples. Sinusoid + noise signals,
+> labels drawn with class weights matching real MIT-BIH imbalance.
 
-> ECG signal strip · model accuracy comparison · CNN & LSTM training loss curves.
-> Generated automatically on every `python train.py` run.
+![Synthetic Results](results/results_synthetic.png)
+
+| Model | Accuracy |
+|-------|----------|
+| Random Forest | 61.00% |
+| SVM | 63.50% |
+| 1D CNN | 63.50% |
+| LSTM | 63.50% |
+
+> **Note on accuracy:** The synthetic dataset is class-imbalanced (N class ≈ 63%).
+> Models predicting "Normal" every time would already hit 63% — this is expected
+> baseline behaviour on synthetic data. Real data results below are significantly stronger.
+
+---
+
+## Results — Real MIT-BIH Data (PhysioNet)
+
+> Same pipeline, same 4 models, swapped to real clinical ECG recordings from the
+> [MIT-BIH Arrhythmia Database](https://physionet.org/content/mitdb/1.0.0/).
+> 5 patient records · 10,634 annotated heartbeats · 360 Hz sampling rate.
+
+![Real Data Results](results/results_real.png)
+
+| Model | Accuracy |
+|-------|----------|
+| Random Forest | **98.82%** |
+| SVM | **98.73%** |
+| 1D CNN | **95.67%** |
+| LSTM | 60.55% |
+
+> **LSTM note:** 15 epochs is sufficient for 1,000 synthetic samples but underfits
+> on 10,634 real beats. More epochs or mini-batch training would close the gap.
+> The CNN loss curve shows strong convergence — dropping from 1.60 → 0.15.
 
 ---
 
@@ -30,12 +62,14 @@ A machine learning pipeline that classifies cardiac arrhythmias into **5 AAMI-st
 ## Architecture
 
 ```
-train.py      ← Main pipeline: data gen · feature extraction · training · results chart
-models.py     ← PyTorch architectures (1D CNN · LSTM)
-features.py   ← 13 hand-engineered features (time-domain · morphological · frequency-domain)
-requirements.txt
+train.py          ← Full pipeline: data · features · training · charts
+mitbih_loader.py  ← Downloads + parses MIT-BIH from PhysioNet (wfdb)
+models.py         ← PyTorch: 1D CNN + LSTM
+features.py       ← 13 hand-engineered features (NumPy + SciPy)
+requirements.txt  ← All dependencies
 results/
-  results.png ← Auto-generated on each run
+  results_synthetic.png  ← Auto-generated: synthetic run
+  results_real.png       ← Auto-generated: real MIT-BIH run
 ```
 
 ### Feature Engineering (13 features)
@@ -60,43 +94,27 @@ results/
 ## Quick Start
 
 ```bash
-# 1. Clone and set up
+# 1. Clone
 git clone https://github.com/dabhiram13/ECG-Arrhythmia-Detection-System.git
 cd ECG-Arrhythmia-Detection-System
 
-# 2. Create virtual environment
+# 2. Virtual environment
 python3 -m venv venv
 source venv/bin/activate        # Windows: venv\Scripts\activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run the full pipeline
+# 4. Run — trains all 4 models on both datasets, saves both charts
 python train.py
+
+# 5. View charts
+open results/results_synthetic.png
+open results/results_real.png
 ```
 
-**Output:** terminal results + `results/results.png` generated automatically.
-
----
-
-## Next Steps — MIT-BIH Evaluation
-
-Current `train.py` uses a 1,000-sample synthetic generator to validate the pipeline end-to-end.
-To run the planned clinically realistic evaluation:
-
-1. Install `wfdb`:
-   ```bash
-   pip install wfdb
-   ```
-
-2. Download the MIT-BIH Arrhythmia Database from [PhysioNet](https://physionet.org/content/mitdb/1.0.0/).
-
-3. Replace `generate_synthetic_dataset()` in `train.py` with a `wfdb`-based loader:
-   ```python
-   import wfdb
-   record     = wfdb.rdrecord('mitdb/100')
-   annotation = wfdb.rdann('mitdb/100', 'atr')
-   ```
+> MIT-BIH data (~110 MB) is auto-downloaded from PhysioNet on first run via `wfdb`.
+> Subsequent runs skip the download.
 
 ---
 
