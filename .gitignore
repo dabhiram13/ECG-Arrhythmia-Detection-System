@@ -1,5 +1,6 @@
 venv/
 __pycache__/
+mitdb/
 *.pyc
 *.pyo
 .DS_Store
