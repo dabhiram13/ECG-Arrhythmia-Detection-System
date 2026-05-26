@@ -1,7 +1,7 @@
 {
-  "python.defaultInterpreterPath": "./venv/bin/python",
+  "python.defaultInterpreterPath": "/Users/sridurga/microsaas/ECG-Arrhythmia-Detection-System/ECG-Arrhythmia-Detection-System/venv/bin/python",
   "python.analysis.extraPaths": [
-    "./venv/lib/python3.13/site-packages"
+    "/Users/sridurga/microsaas/ECG-Arrhythmia-Detection-System/ECG-Arrhythmia-Detection-System/venv/lib/python3.13/site-packages"
   ],
-  "pyrefly.pythonInterpreter": "./venv/bin/python"
+  "pyrefly.pythonInterpreter": "/Users/sridurga/microsaas/ECG-Arrhythmia-Detection-System/ECG-Arrhythmia-Detection-System/venv/bin/python"
 }
