@@ -89,7 +89,7 @@ def train_traditional_models(X: np.ndarray, y: np.ndarray) -> dict:
     rf_preds = rf.predict(X_test)
     rf_acc = accuracy_score(y_test, rf_preds)
     print(f"Random Forest Accuracy: {rf_acc * 100:.2f}%")
-    print(classification_report(y_test, rf_preds, target_names=CLASS_NAMES, zero_division=0))
+    print(classification_report(y_test, rf_preds, target_names=CLASS_NAMES, labels=list(range(5)), zero_division=0))
     results["Random Forest"] = {"acc": rf_acc, "fi": rf.feature_importances_, "fi_names": feature_names}
 
     # SVM
@@ -99,7 +99,7 @@ def train_traditional_models(X: np.ndarray, y: np.ndarray) -> dict:
     svm_preds = svm.predict(X_test)
     svm_acc = accuracy_score(y_test, svm_preds)
     print(f"SVM Accuracy: {svm_acc * 100:.2f}%")
-    print(classification_report(y_test, svm_preds, target_names=CLASS_NAMES, zero_division=0))
+    print(classification_report(y_test, svm_preds, target_names=CLASS_NAMES, labels=list(range(5)), zero_division=0))
     results["SVM"] = {"acc": svm_acc}
 
     return results
@@ -158,7 +158,7 @@ def train_deep_learning_models(X: np.ndarray, y: np.ndarray, epochs: int = 15) -
 
     cnn_acc, cnn_preds = _evaluate(cnn, X_test_cnn, y_test_t)
     print(f"\n1D CNN Accuracy: {cnn_acc * 100:.2f}%")
-    print(classification_report(y_test, cnn_preds, target_names=CLASS_NAMES, zero_division=0))
+    print(classification_report(y_test, cnn_preds, target_names=CLASS_NAMES, labels=list(range(5)), zero_division=0))
     results["1D CNN"] = {"acc": cnn_acc, "losses": cnn_losses}
 
     # ---- LSTM ----
@@ -178,7 +178,7 @@ def train_deep_learning_models(X: np.ndarray, y: np.ndarray, epochs: int = 15) -
 
     lstm_acc, lstm_preds = _evaluate(lstm, X_test_lstm, y_test_t)
     print(f"\nLSTM Accuracy: {lstm_acc * 100:.2f}%")
-    print(classification_report(y_test, lstm_preds, target_names=CLASS_NAMES, zero_division=0))
+    print(classification_report(y_test, lstm_preds, target_names=CLASS_NAMES, labels=list(range(5)), zero_division=0))
     results["LSTM"] = {"acc": lstm_acc, "losses": lstm_losses}
 
     return results
@@ -348,7 +348,11 @@ if __name__ == "__main__":
     print("  Python · PyTorch · scikit-learn · NumPy")
     print("=============================================\n")
 
-    X, y = generate_synthetic_dataset(num_samples=1000, seq_length=187)
+    #load real data
+    from mitbih_loader import load_mitbih_dataset
+    X, y = load_mitbih_dataset(data_dir="./mitdb", max_records=5)
+    #Synthetic data
+    # X, y = generate_synthetic_dataset(num_samples=1000, seq_length=187)
 
     trad_results = train_traditional_models(X, y)
     dl_results   = train_deep_learning_models(X, y, epochs=15)
